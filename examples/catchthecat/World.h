@@ -48,6 +48,20 @@ class World: GameObject {
   static Point2D SE(const Point2D &p);
   static Point2D SW(const Point2D &p);
 
+
+  //returns all neighbors
+  static std::vector<Point2D> neighbors(Point2D point) {
+    std::vector<Point2D> n; 
+    n.push_back(NE(point));
+    n.push_back(NW(point));
+    n.push_back(W(point));
+    n.push_back(E(point));
+    n.push_back(SE(point));
+    n.push_back(SW(point));
+
+    return n; 
+  }
+
   // returns the cat position
   Point2D getCat();
 
