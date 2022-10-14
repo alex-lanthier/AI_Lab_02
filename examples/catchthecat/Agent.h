@@ -21,6 +21,7 @@ struct queueEntry
   Point2D position;
   Point2D origin;
   int weight;
+  bool isEdge;
 };
 
 #endif  // AGENT_H
