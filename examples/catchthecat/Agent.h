@@ -13,7 +13,7 @@ public:
   explicit Agent()= default;
   virtual Point2D Move(World*)=0;
 
-  std::vector<queueEntry> visited;
+  //std::vector<queueEntry> visited;
 };
 
 struct queueEntry
