@@ -30,16 +30,16 @@ void World::SetNode(const Point2D& point, const Node& node) {
   // todo implement this
 }
 void World::SetNorth(const Point2D& point, const bool& state) {
-  // todo implement this
+  data[Point2DtoIndex(point)] = state;
 }
 void World::SetEast(const Point2D& point, const bool& state) {
-  // todo implement this
+  data[Point2DtoIndex(Point2D{point.x + 1, point.y})] = state;
 }
 void World::SetSouth(const Point2D& point, const bool& state) {
-  // todo implement this
+  data[Point2DtoIndex(Point2D{point.x, point.y + 1})] = state;
 }
 void World::SetWest(const Point2D& point, const bool& state) {
-  // todo implement this
+  data[Point2DtoIndex(point) + 1] = state;
 }
 
 void World::Start() {
