@@ -1,10 +1,12 @@
 #include "World.h"
 #include "generators/RecursiveBacktracker.h"
+#include "generators/Prims.h"
 #include <chrono>
 
 World::World(Engine* pEngine, int size=11): GameObject(pEngine), sideSize(size) {
   generators.push_back(new MazeGenerator());
   generators.push_back(new RecursiveBacktracker());
+  generators.push_back(new Prims());
 }
 
 World::~World(){
@@ -16,10 +18,8 @@ World::~World(){
 Node World::GetNode(const Point2D& point) {
   auto index = Point2DtoIndex(point);
   // todo: not tested!!
-  return {data[index],
-          data[index+3],
-          data[index+(sideSize+1)*2],
-          data[index+1]};
+  return {data[index], data[index + 3], data[index + (sideSize + 1) * 2],
+          data[index + 1]};
 }
 
 bool World::GetNorth(const Point2D& point) {
@@ -27,35 +27,36 @@ bool World::GetNorth(const Point2D& point) {
 }
 
 bool World::GetEast(const Point2D& point) {
-  return data[Point2DtoIndex(point)+3];
+  return data[Point2DtoIndex(point) + 3];
 }
 
 bool World::GetSouth(const Point2D& point) {
-  return data[Point2DtoIndex(point)+(sideSize+1)*2];
+  return data[Point2DtoIndex(point) + (sideSize + 1) * 2];
 }
 
 bool World::GetWest(const Point2D& point) {
-  return data[Point2DtoIndex(point)+1];
+  return data[Point2DtoIndex(point) + 1];
 }
 
 void World::SetNode(const Point2D& point, const Node& node) {
   data[Point2DtoIndex(point)] = node.GetNorth();
-  data[Point2DtoIndex(point)+3] = node.GetEast();
-  data[Point2DtoIndex(point)+(sideSize+1)*2] = node.GetSouth();
-  data[Point2DtoIndex(point)+1] = node.GetWest();
+  data[Point2DtoIndex(point) + 3] = node.GetEast();
+  data[Point2DtoIndex(point) + (sideSize + 1) * 2] = node.GetSouth();
+  data[Point2DtoIndex(point) + 1] = node.GetWest();
 }
 void World::SetNorth(const Point2D& point, const bool& state) {
   data[Point2DtoIndex(point)] = state;
 }
 void World::SetEast(const Point2D& point, const bool& state) {
-  data[Point2DtoIndex(Point2D{point.x + 1, point.y})] = state;
+  data[Point2DtoIndex(point) + 3] = state;
 }
 void World::SetSouth(const Point2D& point, const bool& state) {
-  data[Point2DtoIndex(Point2D{point.x, point.y + 1})] = state;
+  data[Point2DtoIndex(point) + (sideSize + 1) * 2] = state;
 }
 void World::SetWest(const Point2D& point, const bool& state) {
   data[Point2DtoIndex(point) + 1] = state;
 }
+
 
 void World::Start() {
   this->Clear();
