@@ -1,4 +1,5 @@
 #include "Prims.h"
+#include "Random.h"
 
 Prims::Prims() {}
 
@@ -12,6 +13,19 @@ bool Prims::Step(World* world) {
       return false;  // no empty space no fill
     stack.push_back(point);
     world->SetNodeColor(point, Color::Red.Dark());
+  }
+
+  // visit the current element
+  auto current = stack.back();
+  visited[current.y][current.x] = true;
+  world->SetNodeColor(current, Color::Red.Dark());
+
+  // check if we should go deeper
+  std::vector<Point2D> visitables = getVisitables(world, current);
+
+  if (!visitables.empty()) {
+    auto next = visitables[Random::Range(0, visitables.size() - 1)];
+
   }
 
 	return false; 
