@@ -5,8 +5,8 @@
 #include <chrono>
 
 World::World(Engine* pEngine, int size=11): GameObject(pEngine), sideSize(size) {
-  generators.push_back(new MazeGenerator());
   generators.push_back(new Prims());
+  generators.push_back(new MazeGenerator());
   generators.push_back(new RecursiveBacktrackerExample());
   generators.push_back(new HuntAndKillExample());
 }

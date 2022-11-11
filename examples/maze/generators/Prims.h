@@ -19,5 +19,6 @@ class Prims : public MazeGeneratorBase {
   bool Step(World* world) override;
   // Clears and resets all data from the generator
   void Clear(World* world) override;
+  std::vector<Point2D> getVisitedNeighbors(World* w, const Point2D& p);
   ~Prims() override;
 };
