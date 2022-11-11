@@ -1,12 +1,14 @@
 #include "World.h"
-#include "generators/RecursiveBacktracker.h"
 #include "generators/Prims.h"
+#include "generators/RecursiveBacktrackerExample.h"
+#include "generators/HuntAndKillExample.h"
 #include <chrono>
 
 World::World(Engine* pEngine, int size=11): GameObject(pEngine), sideSize(size) {
   generators.push_back(new MazeGenerator());
-  generators.push_back(new RecursiveBacktracker());
   generators.push_back(new Prims());
+  generators.push_back(new RecursiveBacktrackerExample());
+  generators.push_back(new HuntAndKillExample());
 }
 
 World::~World(){
@@ -65,8 +67,6 @@ void World::Start() {
 void World::OnGui(ImGuiContext *context){
   ImGui::SetCurrentContext(context);
   float deltaTime = ImGui::GetIO().DeltaTime;
-
-  ImGui::SetCurrentContext(context);
   ImGui::Begin("Settings", nullptr);
   ImGui::Text("%.1fms %.0fFPS | AVG: %.2fms %.1fFPS",
               ImGui::GetIO().DeltaTime * 1000,
@@ -119,6 +119,7 @@ void World::OnGui(ImGuiContext *context){
     }
     ImGui::EndCombo();
   }
+  ImGui::End();
 }
 
 void World::OnDraw(SDL_Renderer* renderer){
