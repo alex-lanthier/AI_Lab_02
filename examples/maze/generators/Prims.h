@@ -21,4 +21,6 @@ class Prims : public MazeGeneratorBase {
   void Clear(World* world) override;
   std::vector<Point2D> getVisitedNeighbors(World* w, const Point2D& p);
   ~Prims() override;
+
+  std::vector<Point2D> visitables;
 };

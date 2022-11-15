@@ -11,43 +11,41 @@ bool Prims::Step(World* world) {
     auto point = randomStartPoint(world);
     if (point.x == INT_MAX && point.y == INT_MAX)
       return false;  // no empty space no fill
-    stack.push_back(point);
+    visitables.push_back(point);
     world->SetNodeColor(point, Color::Red.Dark());
   }
 
-  // visit the current element
-  auto current = stack.back();
-  visited[current.y][current.x] = true;
-  world->SetNodeColor(current, Color::Red.Dark());
-
-  // check if we should go deeper
-  std::vector<Point2D> visitables = getVisitables(world, current);
+  
 
   if (!visitables.empty()) {
       //get random visitable
-    auto next = visitables[Random::Range(0, visitables.size() - 1)];
+    auto current = visitables[Random::Range(0, visitables.size() - 1)];
+
+    // check if we should go deeper
+    std::vector<Point2D> tempVisitables = getVisitables(world, current);
+    visitables.insert(visitables.end(), tempVisitables.begin(), tempVisitables.end());
 
     //delete random wall between next and a previously visited node
-    auto visitedNeighbors = getVisitedNeighbors(world, next);
+    auto visitedNeighbors = getVisitedNeighbors(world, current);
     if (visitedNeighbors.empty())
       return false;  // this should never happen. if we are in this state, the code is wrong
 
     auto visitedPoint = visitedNeighbors[Random::Range(0, visitedNeighbors.size() - 1)];
-    auto delta = visitedPoint - next;
+    auto delta = current - visitedPoint;
 
     // remove walls
     if (delta.y == -1)  // north
-      world->SetNorth(next, false);
+      world->SetNorth(current, false);
     else if (delta.x == 1)  // east
-      world->SetEast(next, false);
+      world->SetEast(current, false);
     else if (delta.y == 1)  // south
-      world->SetSouth(next, false);
+      world->SetSouth(current, false);
     else if (delta.x == -1)  // west
-      world->SetWest(next, false);
+      world->SetWest(current, false);
     else
       return false;  // this should never happen;
 
-    stack.push_back(next);
+    stack.push_back(current);
   }
 
 	return true; 
@@ -76,35 +74,34 @@ Point2D Prims::randomStartPoint(World* world) {
 
 std::vector<Point2D> Prims::getVisitables(World* w, const Point2D& p) {
   auto sideOver2 = w->GetSize() / 2;
-  std::vector<Point2D> visitables;
+  std::vector<Point2D> tempVisitables;
 
-  // todo: improve this
   // north
   if ((abs(p.x) <= sideOver2 &&
        abs(p.y - 1) <= sideOver2) &&  // should be inside the board
       !visited[p.y - 1][p.x] &&       // not visited yet
       w->GetNorth({p.x, p.y - 1}))    // has wall
-    visitables.emplace_back(p.x, p.y - 1);
+    tempVisitables.emplace_back(p.x, p.y - 1);
   // east
   if ((abs(p.x + 1) <= sideOver2 &&
-       abs(p.y) <= sideOver2) &&    // should be inside the board
-      !visited[p.y][p.x + 1] &&     // not visited yet
-      w->GetNorth({p.x + 1, p.y}))  // has wall
-    visitables.emplace_back(p.x + 1, p.y);
+       abs(p.y) <= sideOver2) &&  // should be inside the board
+      !visited[p.y][p.x + 1] &&   // not visited yet
+      w->GetEast({p.x, p.y}))     // has wall
+    tempVisitables.emplace_back(p.x + 1, p.y);
   // south
   if ((abs(p.x) <= sideOver2 &&
        abs(p.y + 1) <= sideOver2) &&  // should be inside the board
       !visited[p.y + 1][p.x] &&       // not visited yet
-      w->GetNorth({p.x, p.y + 1}))    // has wall
-    visitables.emplace_back(p.x, p.y + 1);
+      w->GetSouth({p.x, p.y}))        // has wall
+    tempVisitables.emplace_back(p.x, p.y + 1);
   // west
   if ((abs(p.x - 1) <= sideOver2 &&
-       abs(p.y) <= sideOver2) &&    // should be inside the board
-      !visited[p.y][p.x - 1] &&     // not visited yet
-      w->GetNorth({p.x - 1, p.y}))  // has wall
-    visitables.emplace_back(p.x - 1, p.y);
+       abs(p.y) <= sideOver2) &&  // should be inside the board
+      !visited[p.y][p.x - 1] &&   // not visited yet
+      w->GetWest({p.x, p.y}))     // has wall
+    tempVisitables.emplace_back(p.x - 1, p.y);
 
-  return visitables;
+  return tempVisitables;
 }
 
 std::vector<Point2D> Prims::getVisitedNeighbors(World* w, const Point2D& p) {
