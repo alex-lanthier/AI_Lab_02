@@ -11,41 +11,44 @@ bool Prims::Step(World* world) {
     auto point = randomStartPoint(world);
     if (point.x == INT_MAX && point.y == INT_MAX)
       return false;  // no empty space no fill
-    visitables.push_back(point);
+    stack.push_back(point);
     world->SetNodeColor(point, Color::Red.Dark());
   }
 
-  
+  // visit the current element
+  auto current = stack.back();
+  visited[current.y][current.x] = true;
+  world->SetNodeColor(current, Color::Red.Dark());
+
+  // check if we should go deeper
+  std::vector<Point2D> tempVisitables = getVisitables(world, current);
+  visitables.insert(visitables.end(), tempVisitables.begin(), tempVisitables.end());
 
   if (!visitables.empty()) {
       //get random visitable
-    auto current = visitables[Random::Range(0, visitables.size() - 1)];
-
-    // check if we should go deeper
-    std::vector<Point2D> tempVisitables = getVisitables(world, current);
-    visitables.insert(visitables.end(), tempVisitables.begin(), tempVisitables.end());
+    auto next = visitables[Random::Range(0, visitables.size() - 1)];
 
     //delete random wall between next and a previously visited node
-    auto visitedNeighbors = getVisitedNeighbors(world, current);
+    auto visitedNeighbors = getVisitedNeighbors(world, next);
     if (visitedNeighbors.empty())
       return false;  // this should never happen. if we are in this state, the code is wrong
 
     auto visitedPoint = visitedNeighbors[Random::Range(0, visitedNeighbors.size() - 1)];
-    auto delta = current - visitedPoint;
+    auto delta = visitedPoint - next;
 
     // remove walls
     if (delta.y == -1)  // north
-      world->SetNorth(current, false);
+      world->SetNorth(next, false);
     else if (delta.x == 1)  // east
-      world->SetEast(current, false);
+      world->SetEast(next, false);
     else if (delta.y == 1)  // south
-      world->SetSouth(current, false);
+      world->SetSouth(next, false);
     else if (delta.x == -1)  // west
-      world->SetWest(current, false);
+      world->SetWest(next, false);
     else
       return false;  // this should never happen;
 
-    stack.push_back(current);
+    stack.push_back(next);
   }
 
 	return true; 
