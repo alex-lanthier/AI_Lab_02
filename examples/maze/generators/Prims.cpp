@@ -6,50 +6,55 @@ Prims::Prims() {}
 std::string Prims::GetName() { return std::string("Prim's"); }
 
 bool Prims::Step(World* world) { 
-    // check if we need to find a new starting point
-  if (stack.empty()) {
-    auto point = randomStartPoint(world);
-    if (point.x == INT_MAX && point.y == INT_MAX)
-      return false;  // no empty space no fill
-    stack.push_back(point);
-    world->SetNodeColor(point, Color::Red.Dark());
-  }
+    //add random start point to stack if stack is empty
+    if (stack.empty()) {
+      auto point = randomStartPoint(world);
+      if (point.x == INT_MAX && point.y == INT_MAX)
+        return false;  // no empty space no fill
+      stack.push_back(point);
+      world->SetNodeColor(point, Color::Red.Dark());
+    }
 
-  // visit the current element
-  auto current = stack.back();
-  visited[current.y][current.x] = true;
-  world->SetNodeColor(current, Color::Red.Dark());
+    //get random point from the stack to use as the current node
+    auto randomIndex = Random::Range(0, stack.size() - 1);
+    auto current = stack[randomIndex];
+    auto visitables = getVisitables(world, current);
+    visited[current.y][current.x] = true;
 
-  // check if we should go deeper
-  std::vector<Point2D> tempVisitables = getVisitables(world, current);
-  visitables.insert(visitables.end(), tempVisitables.begin(), tempVisitables.end());
+    //add neighbors to the stack
+    stack.insert(stack.end(), visitables.begin(), visitables.end());
 
-  if (!visitables.empty()) {
-      //get random visitable
-    auto next = visitables[Random::Range(0, visitables.size() - 1)];
+    world->SetNodeColor(current, Color::Black);
 
-    //delete random wall between next and a previously visited node
-    auto visitedNeighbors = getVisitedNeighbors(world, next);
-    if (visitedNeighbors.empty())
-      return false;  // this should never happen. if we are in this state, the code is wrong
+    //remove current from the stack
+    stack.erase(stack.begin() + randomIndex);
 
-    auto visitedPoint = visitedNeighbors[Random::Range(0, visitedNeighbors.size() - 1)];
-    auto delta = visitedPoint - next;
+    for each (Point2D iter in stack) {
+      world->SetNodeColor(iter, Color::Red.Dark());
+    }
 
-    // remove walls
-    if (delta.y == -1)  // north
-      world->SetNorth(next, false);
-    else if (delta.x == 1)  // east
-      world->SetEast(next, false);
-    else if (delta.y == 1)  // south
-      world->SetSouth(next, false);
-    else if (delta.x == -1)  // west
-      world->SetWest(next, false);
-    else
-      return false;  // this should never happen;
+    if (!stack.empty()) {
+      auto visitedNeighbors = getVisitedNeighbors(world, current);
+      if (visitedNeighbors.empty()) {
+        return false; // this should never happen. if we are in this state, the code is wrong
+      }
 
-    stack.push_back(next);
-  }
+      auto visitedPoint = visitedNeighbors[Random::Range(0, visitedNeighbors.size() - 1)];
+
+      auto delta = visitedPoint - current;
+
+      // remove walls
+      if (delta.y == -1)  // north
+        world->SetNorth(current, false);
+      else if (delta.x == 1)  // east
+        world->SetEast(current, false);
+      else if (delta.y == 1)  // south
+        world->SetSouth(current, false);
+      else if (delta.x == -1)  // west
+        world->SetWest(current, false);
+      else
+        return false;  // this should never happen;
+    }
 
 	return true; 
 }
