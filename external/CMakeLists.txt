@@ -1,6 +1,3 @@
-#execute_process( COMMAND git submodule update --init --recursive )
-#set_directory_properties( PROPERTIES CLEAN_NO_CUSTOM 1)
-
 if(COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
@@ -28,13 +25,15 @@ ELSE ()
     #  set( glew-cmake_BUILD_MULTI_CONTEXT OFF CACHE BOOL "Build the multi context glew library" )
     #
     #  add_subdirectory( glew )
-ENDIF ()
+ENDIF()
 
 set(SDL_SHARED OFF CACHE BOOL "SDL_SHARED")
 SET(SDL_STATIC ON CACHE BOOL "SDL_STATIC")
 SET(SDL_STATIC_PIC ON CACHE BOOL "SDL_STATIC_PIC")
 
 add_definitions(-DHAVE_LIBC=OFF)
+# emsdk
+#CPMAddPackage("gh:emscripten-core/emsdk#3.1.25")
 
 # SDL2
 CPMAddPackage(
@@ -86,11 +85,12 @@ IF(IMGUI_ADDED)
     target_include_directories( IMGUI
             PUBLIC ${IMGUI_SOURCE_DIR}
             PUBLIC ${IMGUI_SOURCE_DIR}/backends
-            PUBLIC ${SDL2_DIR}/include
             )
 
     target_link_libraries(IMGUI PUBLIC SDL2-static ${CMAKE_DL_LIBS})
 ENDIF()
+
+
 
 #set( ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "Build assimp tools" )
 #set( ASSIMP_BUILD_TESTS OFF CACHE BOOL "Build assimp tests" )
