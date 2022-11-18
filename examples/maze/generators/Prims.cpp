@@ -19,10 +19,12 @@ bool Prims::Step(World* world) {
     auto randomIndex = Random::Range(0, stack.size() - 1);
     auto current = stack[randomIndex];
     auto visitables = getVisitables(world, current);
-    visited[current.y][current.x] = true;
+    world->SetNodeColor(current, Color::DarkGray);
 
     //add neighbors to the stack
-    stack.insert(stack.end(), visitables.begin(), visitables.end());
+    for (int i = 0; i < visitables.size(); i++) {
+      stack.push_back(visitables[i]);
+    }
 
     world->SetNodeColor(current, Color::Black);
 
@@ -35,93 +37,80 @@ bool Prims::Step(World* world) {
 
     if (!stack.empty()) {
       auto visitedNeighbors = getVisitedNeighbors(world, current);
-      if (visitedNeighbors.empty()) {
-        return false; // this should never happen. if we are in this state, the code is wrong
+
+      if (!visitedNeighbors.empty()) {
+        auto visitedPoint =
+            visitedNeighbors[Random::Range(0, visitedNeighbors.size() - 1)];
+
+        auto delta = visitedPoint - current;
+
+        world->SetNodeColor(current, Color::Black);
+
+        // remove walls
+        if (delta.y == -1)  // north
+          world->SetNorth(current, false);
+        else if (delta.x == 1)  // east
+          world->SetEast(current, false);
+        else if (delta.y == 1)  // south
+          world->SetSouth(current, false);
+        else if (delta.x == -1)  // west
+          world->SetWest(current, false);
+        else
+          return false;  // this should never happen;
       }
-
-      auto visitedPoint = visitedNeighbors[Random::Range(0, visitedNeighbors.size() - 1)];
-
-      auto delta = visitedPoint - current;
-
-      // remove walls
-      if (delta.y == -1)  // north
-        world->SetNorth(current, false);
-      else if (delta.x == 1)  // east
-        world->SetEast(current, false);
-      else if (delta.y == 1)  // south
-        world->SetSouth(current, false);
-      else if (delta.x == -1)  // west
-        world->SetWest(current, false);
-      else
-        return false;  // this should never happen;
     }
 
 	return true; 
 }
 
 void Prims::Clear(World* world) {
-  visited.clear();
   stack.clear();
-  auto sideOver2 = world->GetSize() / 2;
-
-  for (int i = -sideOver2; i <= sideOver2; i++) {
-    for (int j = -sideOver2; j <= sideOver2; j++) {
-      visited[i][j] = false;
-    }
-  }
 }
 
 Point2D Prims::randomStartPoint(World* world) {
-  auto sideOver2 = world->GetSize() / 2;
-
-  for (int y = -sideOver2; y <= sideOver2; y++)
-    for (int x = -sideOver2; x <= sideOver2; x++)
-      if (!visited[y][x]) return {x, y};
-  return {INT_MAX, INT_MAX};
+  return {-world->GetSize()/2, -world->GetSize()/2};
 }
 
 std::vector<Point2D> Prims::getVisitables(World* w, const Point2D& p) {
   auto sideOver2 = w->GetSize() / 2;
-  std::vector<Point2D> tempVisitables;
+  std::vector<Point2D> visitables;
 
   // north
   if ((abs(p.x) <= sideOver2 &&
        abs(p.y - 1) <= sideOver2) &&  // should be inside the board
-      !visited[p.y - 1][p.x] &&       // not visited yet
-      w->GetNorth({p.x, p.y - 1}))    // has wall
-    tempVisitables.emplace_back(p.x, p.y - 1);
+      w->GetNodeColor(p + Point2D::UP) == Color::DarkGray)  // not visited yet
+    visitables.emplace_back(p.x, p.y - 1);
   // east
   if ((abs(p.x + 1) <= sideOver2 &&
        abs(p.y) <= sideOver2) &&  // should be inside the board
-      !visited[p.y][p.x + 1] &&   // not visited yet
-      w->GetEast({p.x, p.y}))     // has wall
-    tempVisitables.emplace_back(p.x + 1, p.y);
+      w->GetNodeColor(p + Point2D::RIGHT) ==
+          Color::DarkGray)  // not visited yet
+    visitables.emplace_back(p.x + 1, p.y);
   // south
   if ((abs(p.x) <= sideOver2 &&
        abs(p.y + 1) <= sideOver2) &&  // should be inside the board
-      !visited[p.y + 1][p.x] &&       // not visited yet
-      w->GetSouth({p.x, p.y}))        // has wall
-    tempVisitables.emplace_back(p.x, p.y + 1);
+      w->GetNodeColor(p + Point2D::DOWN) == Color::DarkGray)  // not visited yet
+    visitables.emplace_back(p.x, p.y + 1);
   // west
   if ((abs(p.x - 1) <= sideOver2 &&
        abs(p.y) <= sideOver2) &&  // should be inside the board
-      !visited[p.y][p.x - 1] &&   // not visited yet
-      w->GetWest({p.x, p.y}))     // has wall
-    tempVisitables.emplace_back(p.x - 1, p.y);
+      w->GetNodeColor(p + Point2D::LEFT) == Color::DarkGray)  // not visited yet
+    visitables.emplace_back(p.x - 1, p.y);
 
-  return tempVisitables;
+  return visitables;
 }
 
 std::vector<Point2D> Prims::getVisitedNeighbors(World* w, const Point2D& p) {
-  std::vector<Point2D> deltas = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
+  std::vector<Point2D> deltas = {Point2D::UP, Point2D::DOWN, Point2D::LEFT,
+                                 Point2D::RIGHT};
   auto sideOver2 = w->GetSize() / 2;
   std::vector<Point2D> neighbors;
 
   for (auto delta : deltas) {
     auto neigh = p + delta;
     if ((abs(neigh.x) <= sideOver2 &&
-         abs(neigh.y) <= sideOver2) &&  // should be inside the board
-        visited[neigh.y][neigh.x])      // visited
+         abs(neigh.y) <= sideOver2) &&           // should be inside the board
+        w->GetNodeColor(neigh) == Color::Black)  // visited
     {
       bool wall;
       if (delta.y == -1)  // north
