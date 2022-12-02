@@ -1,11 +1,13 @@
 #include "Manager.h"
 #include "Point2D.h"
 #include "generators/RandomGenerator.h"
+#include "generators/Generator.h"
 #include <chrono>
 #include <iostream>
 Manager::Manager(Engine* engine, int size)
     : GameObject(engine) {
   // todo: add your generator here
+  generators.push_back(new Generator());
   generators.push_back(new RandomScenarioGenerator());
 }
 
