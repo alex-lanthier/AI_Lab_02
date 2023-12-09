@@ -113,17 +113,6 @@ class World: GameObject {
 
   //returns true if cat wins on the given space
   bool catWinsOnSpace(Point2D point);
-
-  static std::vector<Point2D> neighbors(Point2D point){
-    std::vector<Point2D> n;
-    n.push_back(NE(point));
-    n.push_back(NW(point));
-    n.push_back(E(point));
-    n.push_back(W(point));
-    n.push_back(SW(point));
-    n.push_back(SE(point));
-    return n;
-  }
 };
 
 #endif  // WORLD_H
